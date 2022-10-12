@@ -2,16 +2,14 @@ NAME_SERV = scan_service
 NAME_CL = scan_util
 
 CC = clang++
-# FLAGS = -Wall -Werror -Wextra -g
-FLAGS = -Wall -Werror -Wextra -g -fsanitize=address  
+FLAGS = -Wall -Werror -Wextra -g
+# FLAGS = -Wall -Werror -Wextra -g -fsanitize=address  
 # FLAGS = -Wall -Werror -Wextra -g  -fsanitize=thread 
-
 # FLAGS = -Wall -Werror -Wextra 
 
-# LIBRARIES =  -lpthread -L/Users/$(USER)/Desktop/boost_1_80_0/stage/lib -lboost_system -lboost_thread  -lboost_thread -lboost_filesystem -lboost_log_setup -lboost_log
-# INCLUDES = -I/Users/$(USER)/Desktop/boost_1_80_0
+HEADERS = scan.hpp
 
-SOURCES_SERV =  server.cpp scan.cpp ft_itoa.cpp
+SOURCES_SERV =  server.cpp scan.cpp ft_itoa.cpp scan_utils.cpp scan_check.cpp
 SOURCES_CL =  client.cpp 
 
 
@@ -31,7 +29,7 @@ all: $(NAME_CL) $(NAME_SERV)
 
 ALL_OBJS_DIR = $(DIR_SRC)
 
-$(NAME_SERV): $(OBJS_S)
+$(NAME_SERV): $(OBJS_S) $(HEADERS)
 	$(CC) $(FLAGS) $(INCLUDES)  $(LIBRARIES) $(OBJS_S) -o $(NAME_SERV)
 	@echo "\n$(MARK) $(NAME_SERV): $(GREEN)object files were created$(RESET)"
 	@echo "$(MARK) $(NAME_SERV): $(GREEN)$(NAME_SERV) was created$(RESET)"
@@ -40,13 +38,6 @@ $(NAME_CL): $(OBJS_C)
 	$(CC) $(FLAGS) $(OBJS_C) -o $(NAME_CL)
 	@echo "\n$(MARK) $(NAME_CL): $(GREEN)object files were created$(RESET)"
 	@echo "$(MARK) $(NAME_CL): $(GREEN)$(NAME_CL) was created$(RESET)"
-
-
-# $(OBJS_C)%.o : %.cpp
-# 	$(CC) $(FLAGS) -c $< -o $@
-
-# $(OBJS_S)%.o : %.cpp
-# 	$(CC) $(FLAGS) -c $< -o $@
 
 %.o : %.cpp
 	$(CC) $(FLAGS) -c $< -o $@
