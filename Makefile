@@ -2,8 +2,8 @@ NAME_SERV = scan_service
 NAME_CL = scan_util
 
 CC = clang++
-FLAGS = -Wall -Werror -Wextra -g
-# FLAGS = -Wall -Werror -Wextra -g -fsanitize=address
+# FLAGS = -Wall -Werror -Wextra -g
+FLAGS = -Wall -Werror -Wextra -g -fsanitize=address
 # FLAGS = -Wall -Werror -Wextra 
 
 # LIBRARIES =  -lpthread -L/Users/$(USER)/Desktop/boost_1_80_0/stage/lib -lboost_system -lboost_thread  -lboost_thread -lboost_filesystem -lboost_log_setup -lboost_log
@@ -30,13 +30,12 @@ all: $(NAME_CL) $(NAME_SERV)
 ALL_OBJS_DIR = $(DIR_SRC)
 
 $(NAME_SERV): $(OBJS_S)
-	@$(CC) $(FLAGS) $(INCLUDES)  $(LIBRARIES) $(OBJS_S) -o $(NAME_SERV)
-# clang++ -Wall -I/Users/anastasiadementeva/Desktop/boost_1_80_0 -std=c++14 -lpthread server.cpp -o titan -L/Users/anastasiadementeva/Desktop/boost_1_80_0/stage/lib -lboost_system -lboost_thread  -lboost_thread -lboost_filesystem -lboost_log_setup -lboost_log
+	$(CC) $(FLAGS) $(INCLUDES)  $(LIBRARIES) $(OBJS_S) -o $(NAME_SERV)
 	@echo "\n$(MARK) $(NAME_SERV): $(GREEN)object files were created$(RESET)"
 	@echo "$(MARK) $(NAME_SERV): $(GREEN)$(NAME_SERV) was created$(RESET)"
 
 $(NAME_CL): $(OBJS_C) 
-	@$(CC) $(FLAGS) $(OBJS_C) -o $(NAME_CL)
+	$(CC) $(FLAGS) $(OBJS_C) -o $(NAME_CL)
 	@echo "\n$(MARK) $(NAME_CL): $(GREEN)object files were created$(RESET)"
 	@echo "$(MARK) $(NAME_CL): $(GREEN)$(NAME_CL) was created$(RESET)"
 
@@ -52,7 +51,7 @@ $(NAME_CL): $(OBJS_C)
 	@echo "\n$(MARK) $(NAME): $(GREEN)object files were created$(RESET)"
 
 clean:
-	@rm -rf $(OBJS)
+	@rm -rf *.o
 	@echo "$(NAME): $(RED) $(CROSS)object $(RED) files were deleted$(RESET)"
 
 fclean: clean

@@ -8,6 +8,7 @@
 #define MAC_STR		1
 #define JS_STR		2
 
+
 struct Info
 {
 	unsigned int countFiles;
@@ -145,13 +146,13 @@ void	cycleThroughFiles(DIR *direct, struct dirent *diren, char *dir, Info *scanI
 
 	while (diren != NULL)
 	{
-		write(1, "dirname == |||", 15);
-		write(1, diren->d_name, strlen(diren->d_name));
-		write(1, "|||-", 4);
-		write(1, "dirtype == |||", 15);
-		char type = (diren->d_type + 48);
-		write(1, &type, 1);
-		write(1, "|||\n", 4);
+		// write(1, "dirname == |||", 15);
+		// write(1, diren->d_name, strlen(diren->d_name));
+		// write(1, "|||-", 4);
+		// write(1, "dirtype == |||", 15);
+		// char type = (diren->d_type + 48);
+		// write(1, &type, 1);
+		// write(1, "|||\n", 4);
 		if (diren->d_type == 4 && diren->d_name[0] != '.')
 		{
 			new_dir = ft_strjoin_path(dir, diren->d_name);
@@ -201,32 +202,12 @@ void	setDefaultScanInfo(Info *scanInfo)
 	scanInfo->errors = 0;
 }
 
-// char	*join_str_at_the_end(char *dst, std::string src)
-// {
-// 	int	i = strlen(dst);
-// 	int j = 0;
-// 	int lenSrc = src.length();
-
-// 	if (i != 0)
-// 		--i;
-// 	while (j < lenSrc)
-// 	{
-// 		dst[i] = src[j];
-// 		i++;
-// 		j++;
-// 	}
-// 	dst[i] = '\0';
-// 	return (dst);
-// }
-
-char	*join_str_at_the_end(char *dst, const char *src)
+char	*joinStrAtTheEnd(char *dst, const char *src)
 {
 	int	i = strlen(dst);
 	int j = 0;
 	int lenSrc = strlen(src);
 
-	if (i > 0)
-		--i;
 	while (j < lenSrc)
 	{
 		dst[i] = src[j];
@@ -237,56 +218,10 @@ char	*join_str_at_the_end(char *dst, const char *src)
 	return (dst);
 }
 
-char	*join_str_at_the_end(char *dst, char *src)
+char *makeScanReportLine(Info scanInfo, int timeRes)
 {
-	int	i = strlen(dst);
-	int j = 0;
-	int lenSrc = strlen(src);
-
-	if (i > 0)
-		--i;
-	while (j < lenSrc)
-	{
-		dst[i] = src[j];
-		i++;
-		j++;
-	}
-	dst[i] = '\0';
-	return (dst);
-}
-
-char *scaner(char *path)
-{
-	Info scanInfo;
-	time_t timeStart;
-	int timeRes;
-
-	setDefaultScanInfo(&scanInfo);
-	write(1, "PATH TO DIR IN SCANER == |||", 29);
-	write(1, path, strlen(path));
-	write(1, "|||\n", 4);
-
-	if (chdir(path) == -1)
-	{
-		return (strdup("Error1 chdir to the path: No such file or directory\n"));
-	}
-	write(1, "== Scan service is started ==\n", 30);
-	timeStart = time(NULL);
-	if (searchingInCurrentDir(&scanInfo) == 1)
-	{
-		return (strdup("Error2 searchingInCurrentDir getcwd / closedir\n"));
-	}
-	timeRes =  time(NULL) - timeStart;
-	write(1, "====== Scan result ======\n\n", 26);
-	printf("Processed files: %d\n", scanInfo.countFiles);
-	printf("JS detects: %d\n", scanInfo.detect[JS_STR]);
-	printf("UNIX detects: %d\n", scanInfo.detect[UNIX_SRT]);
-	printf("macOS detects: %d\n", scanInfo.detect[MAC_STR]);
-	printf("Errors: %d\n", scanInfo.errors);
-	// printf("Exection time: %d\n", time);
-	printf("=========================");
-
 	char * result;
+
 	char * countFiles = ft_itoa(scanInfo.countFiles);
 	char * jsD = ft_itoa(scanInfo.detect[JS_STR]);
 	char * unD = ft_itoa(scanInfo.detect[UNIX_SRT]);
@@ -297,11 +232,8 @@ char *scaner(char *path)
 	char *hours = ft_itoa(hour);
 	int min = (timeRes - hour * 3600) / 60;
 	char *minuts = ft_itoa(min);
-	int sec = (timeRes - hour * 3600 - min * 60) / 60;
+	int sec = (timeRes - hour * 3600 - min * 60);
 	char *secnd = ft_itoa(sec);
-
-
-
 	int countSymb = 26  //====== Scan result ======\n
 					+ 17 + strlen(countFiles) + 1 //Processed files: countF\n
 					+ 12 + strlen(jsD) + 1 //JS detects: jsD\n
@@ -315,28 +247,49 @@ char *scaner(char *path)
 	if (!result)
 		return (strdup("Error3: malloc error\n"));
 	result[0] = '\0';
-	result = join_str_at_the_end(result, "====== Scan result ======\n");
-	result = join_str_at_the_end(result, "Processed files: "); 
-	result = join_str_at_the_end(result, countFiles);
-	result = join_str_at_the_end(result, "\nJS detects: "); 
-	result = join_str_at_the_end(result, jsD);
-	result = join_str_at_the_end(result, "\nUNIX detects: "); 
-	result = join_str_at_the_end(result, unD);
-	result = join_str_at_the_end(result, "\nmacOS detects: "); 
-	result = join_str_at_the_end(result, macD);
-	result = join_str_at_the_end(result, "\nErrors: "); 
-	result = join_str_at_the_end(result, err);
-	result = join_str_at_the_end(result, "\nExection time: "); 
-	result = join_str_at_the_end(result, hours); 
-	result = join_str_at_the_end(result, ":"); 
-	result = join_str_at_the_end(result, minuts);
-	result = join_str_at_the_end(result, ":"); 
-	result = join_str_at_the_end(result, secnd);
-	result = join_str_at_the_end(result, "\n=========================");
+	result = joinStrAtTheEnd(result, "====== Scan result ======\n");
+	result = joinStrAtTheEnd(result, "Processed files: "); 
+	result = joinStrAtTheEnd(result, countFiles);
+	result = joinStrAtTheEnd(result, "\nJS detects: "); 
+	result = joinStrAtTheEnd(result, jsD);
+	result = joinStrAtTheEnd(result, "\nUNIX detects: "); 
+	result = joinStrAtTheEnd(result, unD);
+	result = joinStrAtTheEnd(result, "\nmacOS detects: "); 
+	result = joinStrAtTheEnd(result, macD);
+	result = joinStrAtTheEnd(result, "\nErrors: "); 
+	result = joinStrAtTheEnd(result, err);
+	result = joinStrAtTheEnd(result, "\nExection time: "); 
+	result = joinStrAtTheEnd(result, hours); 
+	result = joinStrAtTheEnd(result, ":"); 
+	result = joinStrAtTheEnd(result, minuts);
+	result = joinStrAtTheEnd(result, ":"); 
+	result = joinStrAtTheEnd(result, secnd);
+	result = joinStrAtTheEnd(result, "\n=========================");
 
 	free(countFiles); free(jsD); free(unD); free(macD); free(err);
 	free(hours); free(minuts); free(secnd);
+	return result;
+}
 
+char *scaner(char *path)
+{
+	Info scanInfo;
+	time_t timeStart;
+	int timeRes;
+
+	setDefaultScanInfo(&scanInfo);
+	if (chdir(path) == -1)
+	{
+		return (strdup("Error1 chdir to the path: No such file or directory\n"));
+	}
+	write(1, "== Scan service is started ==\n", 30);
+	timeStart = time(NULL);
+	if (searchingInCurrentDir(&scanInfo) == 1)
+	{
+		return (strdup("Error2 searchingInCurrentDir getcwd / closedir\n"));
+	}
+	timeRes =  time(NULL) - timeStart;
+	char * result = makeScanReportLine(scanInfo, timeRes);
 	return (result);
 }
 
