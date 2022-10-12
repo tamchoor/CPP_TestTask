@@ -43,25 +43,15 @@ int main()
 		perror("accept");
 		exit(3);
 	}
-    // while(client.registrFlag != STOP)
-    // {
 	char *scanerRes = NULL;
 	client.bytes_read = recv(client.sock, client.message, 1024, 0);
 	if (client.bytes_read > 0)
 	{
 		client.message[client.bytes_read] = '\0';
-		// write(1, "PATH TO DIR IN SERVIS == |||", 29);
-		// write(1, client.message, strlen(client.message));
-		// write(1, "|||\n", 4);
-		// printf("read bytes = %d",client.bytes_read );
 		scanerRes = scaner(client.message);
-		// checkClientMessage(&client);
 	}
 	send(client.sock, scanerRes, strlen(scanerRes), 0);
-	// write(1, scanerRes, strlen(scanerRes));
 	free(scanerRes);
-	// }
-	std::cout << "STOP and close\n";
 	close(client.sock);
 	return 0;
 }

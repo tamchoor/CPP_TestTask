@@ -3,19 +3,41 @@
 #include <libc.h>
 #include <dirent.h>
 #include <fstream>
+#include <pthread.h>
 
-#define UNIX_SRT	0
-#define MAC_STR		1
-#define JS_STR		2
+#define UNIX_SRT		0
+#define MAC_STR			1
+#define JS_STR			2
 
+#define THREAT_COUNT	3
 
+// struct pthreadData
+// {
+// 	pthread_t		thread[THREAT_COUNT];
+// 	pthread_mutex_t	block;
+// };
 struct Info
 {
-	unsigned int countFiles;
-	unsigned int detect[3];
-	unsigned int errors;
-	// time_t time;
+	unsigned int	countFiles;
+	unsigned int	detect[THREAT_COUNT];
+	unsigned int	errors;
+	// pthreadData		*threadData;
+	pthread_mutex_t	block;
+	// checkingData	checkingJs;
 };
+
+struct checkingData
+{
+	std::string			*searchLine;
+	std::string			*fileLine;
+	int					indx;
+	// pthreadData		&threadData;
+	Info				*scanInfo;
+	pthread_t			thread;
+	struct checkingData	*next;
+};
+
+
 
 char	*ft_itoa(int n);
 int searchingInCurrentDir(Info *scanInfo);
@@ -87,21 +109,85 @@ char	*ft_strjoin_path(char const *s1, char const *s2)
 	return (dest);
 }
 
-int	checkOneLineConsistThreat(std::string fileLine, std::string searchLine)
+void	*checkOneLineConsistThreat(void	*checkingCurrent)
 {
+	checkingData	*checking = (checkingData *) checkingCurrent;
+	std::string fileLine = *checking->fileLine;
+	std::string searchLine = *checking->searchLine;
+
 	size_t i = 0;
 	i = fileLine.find(searchLine, i);
 	if (i != std::string::npos)
 	{
-		return 1;
+		write(1, "TREAT NBR - ", 12);
+		char nbr = checking->indx + 48;
+		write(1, &nbr, 1);
+		write(1, " -\n", 3);
+		pthread_mutex_lock(&checking->scanInfo->block);
+		++checking->scanInfo->detect[checking->indx];
+		pthread_mutex_unlock(&checking->scanInfo->block);
 	}
-	return 0;
+	return ((void *)i);
 }
+
+checkingData	*allocMemForChecking(int itIsJs, Info *scanInfo)
+{
+	checkingData	*checking;
+	checkingData	*first_checking;
+
+	checking = (checkingData *)calloc(1, sizeof(checkingData));
+	if (!checking)
+	{
+		return NULL;
+		// goto mallocerror;
+	}
+	// checking->searchLine = &search[0];
+
+	checking->scanInfo = scanInfo;
+	first_checking = checking;
+	checking->next = (checkingData *)calloc(1, sizeof(checkingData));
+	if (!checking->next)
+	{
+		while(first_checking)
+		{
+			checking = first_checking->next;
+			free(first_checking);
+			first_checking = checking;
+		}
+		return NULL;
+		// goto mallocerror;
+	}
+	// checking->next->searchLine = &search[1];
+	checking->next->scanInfo = scanInfo;
+	checking->next->next = NULL;
+	if (itIsJs == 0)
+	{
+		checking->next->next = (checkingData *)calloc(1, sizeof(checkingData));
+		if (!checking->next->next)
+		{
+			while(first_checking)
+			{
+				checking = first_checking->next;
+				free(first_checking);
+				first_checking = checking;
+			}
+			return NULL;
+			// goto mallocerror;
+		}
+		// checking->next->next->searchLine = &search[2];
+		checking->next->next->scanInfo = scanInfo;
+		checking->next->next->next = NULL;
+	}
+	return checking;
+}
+
 
 void	checkFileConsistsThreat(Info *scanInfo, char *filename)
 {
 	int itIsJs = itIsJsFile(filename); // 0 - true
 	std::fstream file(filename);
+	checkingData	*checking;
+	checkingData	*first_checking;
 
 	write(1, "itIsJs - ", 9);
 	char nbr1 = itIsJs + 48;
@@ -112,30 +198,108 @@ void	checkFileConsistsThreat(Info *scanInfo, char *filename)
 	{
 		write(1, "reading\n", 8);
 		++scanInfo->countFiles;
-		int threatCount = 3;
-		std::string search[3] = {"rm -rf ~/Documents", "system(\"launchctl load /Library/LaunchAgents/com.malware.agent\")", "<script>evil_script()</script>"};
+		int threatCount = THREAT_COUNT;
+		std::string search[THREAT_COUNT] = {"rm -rf ~/Documents", "system(\"launchctl load /Library/LaunchAgents/com.malware.agent\")", "<script>evil_script()</script>"};
 		std::string fileLine;
+
+		// checking = allocMemForChecking(itIsJs, scanInfo);
+		// if (!checking)
+		// 	goto mallocerror;
+		// first_checking = checking;
+		// checking->searchLine = &search[0];
+		// checking->next->next->searchLine = &search[2];
+		// checking->next->searchLine = &search[1];
+
+		checking = (checkingData *)calloc(1, sizeof(checkingData));
+		if (!checking)
+		{
+			goto mallocerror;
+		}
+		checking->searchLine = &search[0];
+
+		checking->scanInfo = scanInfo;
+		first_checking = checking;
+		checking->next = (checkingData *)calloc(1, sizeof(checkingData));
+		if (!checking->next)
+		{
+			while(first_checking)
+			{
+				checking = first_checking->next;
+				free(first_checking);
+				first_checking = checking;
+			}
+			goto mallocerror;
+		}
+		checking->next->searchLine = &search[1];
+		checking->next->scanInfo = scanInfo;
+		checking->next->next = NULL;
+		if (itIsJs == 0)
+		{
+			checking->next->next = (checkingData *)calloc(1, sizeof(checkingData));
+			if (!checking->next->next)
+			{
+				while(first_checking)
+				{
+					checking = first_checking->next;
+					free(first_checking);
+					first_checking = checking;
+				}
+				goto mallocerror;
+			}
+			checking->next->next->searchLine = &search[2];
+			checking->next->next->scanInfo = scanInfo;
+			checking->next->next->next = NULL;
+		}
+
+
 		while (getline(file, fileLine))
         {
 			int indx = 0;
+			checking = first_checking;
 			while ((itIsJs == 0 && indx < threatCount) || (itIsJs != 0 && indx < threatCount - 1))
 			{
-				if (checkOneLineConsistThreat(fileLine, search[indx]) == 1)
+				checking->fileLine = &fileLine;
+				checking->indx = indx;
+				if (pthread_create(&checking->thread, NULL, checkOneLineConsistThreat, (checking)) != 0)
 				{
-					++scanInfo->detect[indx];
-					write(1, "TREAT NBR - ", 12);
-					char nbr = indx + 48;
-					write(1, &nbr, 1);
-					write(1, " -\n", 3);
-					break;
+					while(first_checking)
+					{
+						checking = first_checking->next;
+						free(first_checking);
+						first_checking = checking;
+					}
+					goto mallocerror;
 				}
+
 				++indx;
+				if ((itIsJs == 0 && indx < threatCount) || (itIsJs != 0 && indx < threatCount - 1))
+				{
+					if (checking->next)
+						checking = checking->next;
+					else
+						checking = first_checking;
+				}
 			}
+			// join tread
+			checking = first_checking;
+			while(checking)
+			{
+				pthread_join (checking->thread, NULL);
+				checking = checking->next;
+			}
+		}
+		while(first_checking)
+		{
+			checking = first_checking->next;
+			free(first_checking);
+			first_checking = checking;
 		}
 	}
 	else
 	{
-		++scanInfo->errors;
+		// ++scanInfo->errors;
+		mallocerror:
+			++scanInfo->errors;
 	}
 }
 
@@ -146,13 +310,14 @@ void	cycleThroughFiles(DIR *direct, struct dirent *diren, char *dir, Info *scanI
 
 	while (diren != NULL)
 	{
-		// write(1, "dirname == |||", 15);
-		// write(1, diren->d_name, strlen(diren->d_name));
-		// write(1, "|||-", 4);
+		write(1, "dirname == |||", 15);
+		write(1, diren->d_name, strlen(diren->d_name));
+		write(1, "|||-", 4);
 		// write(1, "dirtype == |||", 15);
 		// char type = (diren->d_type + 48);
 		// write(1, &type, 1);
 		// write(1, "|||\n", 4);
+
 		if (diren->d_type == 4 && diren->d_name[0] != '.')
 		{
 			new_dir = ft_strjoin_path(dir, diren->d_name);
@@ -168,7 +333,9 @@ void	cycleThroughFiles(DIR *direct, struct dirent *diren, char *dir, Info *scanI
 			free(new_dir);
 		}
 		if (diren->d_type == 8)
+		{
 			checkFileConsistsThreat(scanInfo, diren->d_name);
+		}
 		diren = readdir(direct);
 	}
 }
@@ -180,6 +347,8 @@ int searchingInCurrentDir(Info *scanInfo)
 	DIR				*direct;
 	struct dirent	*diren;
 
+	// write(1, "\nsearchingInCurrentDir\n", 19);
+	// sleep(8);
 	dir = NULL;
 	dir = getcwd(dir, PATH_MAX);
 	if (dir == NULL)
@@ -193,13 +362,17 @@ int searchingInCurrentDir(Info *scanInfo)
 	return 0;
 }
 
-void	setDefaultScanInfo(Info *scanInfo)
+int	setDefaultScanInfo(Info *scanInfo)
 {
 	scanInfo->countFiles = 0;
 	scanInfo->detect[0] = 0;
 	scanInfo->detect[1] = 0;
 	scanInfo->detect[2] = 0;
 	scanInfo->errors = 0;
+	if (pthread_mutex_init(&scanInfo->block, NULL) != 0)
+		return (1);
+	return (0);
+
 }
 
 char	*joinStrAtTheEnd(char *dst, const char *src)
@@ -245,7 +418,18 @@ char *makeScanReportLine(Info scanInfo, int timeRes)
 	
 	result = (char *) calloc(countSymb + 1, sizeof(char));
 	if (!result)
+	{
+		free(countFiles);
+		free(jsD);
+		free(unD);
+		free(macD);
+
+		free(err);
+		free(hours);
+		free(minuts);
+		free(secnd);
 		return (strdup("Error3: malloc error\n"));
+	}
 	result[0] = '\0';
 	result = joinStrAtTheEnd(result, "====== Scan result ======\n");
 	result = joinStrAtTheEnd(result, "Processed files: "); 
@@ -266,8 +450,15 @@ char *makeScanReportLine(Info scanInfo, int timeRes)
 	result = joinStrAtTheEnd(result, secnd);
 	result = joinStrAtTheEnd(result, "\n=========================");
 
-	free(countFiles); free(jsD); free(unD); free(macD); free(err);
-	free(hours); free(minuts); free(secnd);
+	free(countFiles);
+	free(jsD);
+	free(unD);
+	free(macD);
+
+	free(err);
+	free(hours);
+	free(minuts);
+	free(secnd);
 	return result;
 }
 
@@ -277,19 +468,40 @@ char *scaner(char *path)
 	time_t timeStart;
 	int timeRes;
 
-	setDefaultScanInfo(&scanInfo);
+	if (setDefaultScanInfo(&scanInfo) != 0)
+		return (strdup("Error0 mutex init\n"));
 	if (chdir(path) == -1)
 	{
+		pthread_mutex_destroy(&scanInfo.block);
 		return (strdup("Error1 chdir to the path: No such file or directory\n"));
 	}
 	write(1, "== Scan service is started ==\n", 30);
 	timeStart = time(NULL);
 	if (searchingInCurrentDir(&scanInfo) == 1)
 	{
+		pthread_mutex_destroy(&scanInfo.block);
 		return (strdup("Error2 searchingInCurrentDir getcwd / closedir\n"));
 	}
+	pthread_mutex_destroy(&scanInfo.block);
 	timeRes =  time(NULL) - timeStart;
+	// (void) timeRes;
+	// char * result = NULL;
 	char * result = makeScanReportLine(scanInfo, timeRes);
 	return (result);
 }
+
+// char *scaner(char *path)
+// {
+// 	Info scanInfo;
+// 	int timeRes = 13;
+// 	(void) path;
+
+// 	scanInfo.countFiles = 0;
+// 	scanInfo.detect[0] = 0;
+// 	scanInfo.detect[1] = 0;
+// 	scanInfo.detect[2] = 0;
+// 	scanInfo.errors = 0;
+// 	char * result = makeScanReportLine(scanInfo, timeRes);
+// 	return (result);
+// }
 

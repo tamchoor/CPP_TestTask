@@ -2,8 +2,10 @@ NAME_SERV = scan_service
 NAME_CL = scan_util
 
 CC = clang++
-# FLAGS = -Wall -Werror -Wextra -g
-FLAGS = -Wall -Werror -Wextra -g -fsanitize=address
+FLAGS = -Wall -Werror -Wextra -g
+# FLAGS = -Wall -Werror -Wextra -g -fsanitize=address  
+# FLAGS = -Wall -Werror -Wextra -g  -fsanitize=thread 
+
 # FLAGS = -Wall -Werror -Wextra 
 
 # LIBRARIES =  -lpthread -L/Users/$(USER)/Desktop/boost_1_80_0/stage/lib -lboost_system -lboost_thread  -lboost_thread -lboost_filesystem -lboost_log_setup -lboost_log
