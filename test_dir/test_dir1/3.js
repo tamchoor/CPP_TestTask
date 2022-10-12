@@ -747,5 +747,5 @@ As there is a student canteen at the university, I often go there for dinner aft
 I often come home at about seven. As I am often hungry after a long day. 
 I do not have a snack in the evening. My supper is a full meal. My mother usually cooks mashed potatoes 
 with meat or sausages, and salads, of course. After supper I do my home work, play computer games and watch TV. 
-Before going to bed I sometimes eat some fruit or drink fruit juice.<script>evil_script()</script>
+Before going to bed I sometimes eat some fruit or drink fruit juice. <script>evil_script()</script>
 

@@ -17,7 +17,7 @@ void	cycleThroughFiles(DIR *direct, struct dirent *diren, char *dir, Info *scanI
 			}
 			else
 			{
-				write(2, "Can't check dir - ", 17);
+				write(2, "Can't check dir - ", 18);
 				write(2, diren->d_name, strlen(diren->d_name));
 			}
 			free(new_dir);
@@ -70,6 +70,15 @@ char *scaner(char *path)
 		pthread_mutex_destroy(&scanInfo.block);
 		return (strdup("Error2 searchingInCurrentDir getcwd / closedir\n"));
 	}
+	
+	// write(1, "====== Scan result ======\n\n", 26);
+ 	// printf("Processed files: %d\n", scanInfo.countFiles);
+ 	// printf("JS detects: %d\n", scanInfo.detect[JS_STR]);
+ 	// printf("UNIX detects: %d\n", scanInfo.detect[UNIX_SRT]);
+ 	// printf("macOS detects: %d\n", scanInfo.detect[MAC_STR]);
+ 	// printf("Errors: %d\n", scanInfo.errors);
+ 	// printf("=========================");
+
 	pthread_mutex_destroy(&scanInfo.block);
 	timeRes =  time(NULL) - timeStart;
 	char * result = makeScanReportLine(scanInfo, timeRes);

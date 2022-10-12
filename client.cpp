@@ -28,18 +28,12 @@ int main(int argc, char **argv)
             perror("connect");
             exit(2);
         }
-        // while (1)
-        // {
-        // char *newstr = strdup(argv[1]);
         send(sock, argv[1], strlen(argv[1]), 0);
         int bytes_read = recv(sock, message, maxLen, 0);
         if (bytes_read > 0)
         {
             write(1, message, strlen(message));
         }
-                // if (strcmp(message, "STOP") == 0)
-                //     break ;
-        // }
         close(sock);
     }
     else 
