@@ -1,7 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <iostream>
-
 #include <netinet/in.h>
 #include <libc.h>
 
@@ -22,19 +21,19 @@ int main()
 
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if (listener < 0)
-    {
-        perror("socket");
-        exit(1);
-    }
+	{
+		perror("socket");
+		exit(1);
+	}
 
 	addr.sin_family = AF_INET;
-    addr.sin_port = htons(3425);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(3425);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        perror("bind");
-        exit(2);
-    }
+	{
+		perror("bind");
+		exit(2);
+	}
 	listen(listener, 1);
 
 	client.sock = accept(listener, NULL, NULL);
@@ -45,7 +44,7 @@ int main()
 	}
 	char *scanerRes = NULL;
 	client.bytes_read = recv(client.sock, client.message, 1024, 0);
-	if (client.bytes_read > 0)
+	if (client.bytes_read > 0 && client.message[0] != '\0')
 	{
 		client.message[client.bytes_read] = '\0';
 		scanerRes = scaner(client.message);

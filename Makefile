@@ -1,7 +1,7 @@
 NAME_SERV = scan_service
 NAME_CL = scan_util
 
-CC = clang++
+CC = c++
 FLAGS = -Wall -Werror -Wextra -g
 # FLAGS = -Wall -Werror -Wextra -g -fsanitize=address  
 # FLAGS = -Wall -Werror -Wextra -g  -fsanitize=thread 

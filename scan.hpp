@@ -23,6 +23,7 @@ struct Info
 	unsigned int	countFiles;
 	unsigned int	detect[THREAT_COUNT];
 	unsigned int	errors;
+	
 	pthread_mutex_t	block;
 };
 

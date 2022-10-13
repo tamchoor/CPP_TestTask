@@ -4,24 +4,25 @@ int searchingInCurrentDir(Info *scanInfo);
 
 void	cycleThroughFiles(DIR *direct, struct dirent *diren, char *dir, Info *scanInfo)
 {
-	char *new_dir;
+	// char *new_dir;
 
 	while (diren != NULL)
 	{
-		if (diren->d_type == 4 && diren->d_name[0] != '.')
-		{
-			new_dir = ft_strjoin_path(dir, diren->d_name);
-			if (chdir(new_dir) != -1)
-			{
-				searchingInCurrentDir(scanInfo);
-			}
-			else
-			{
-				write(2, "Can't check dir - ", 18);
-				write(2, diren->d_name, strlen(diren->d_name));
-			}
-			free(new_dir);
-		}
+		// if (diren->d_type == 4 && diren->d_name[0] != '.')
+		// {
+		// 	new_dir = ft_strjoin_path(dir, diren->d_name);
+		// 	if (chdir(new_dir) != -1)
+		// 	{
+		// 		searchingInCurrentDir(scanInfo);
+		// 	}
+		// 	else
+		// 	{
+		// 		write(2, "Can't check dir - ", 18);
+		// 		write(2, diren->d_name, strlen(diren->d_name));
+		// 	}
+		// 	free(new_dir);
+		// }
+		(void) dir; 					//Чтобы работали вложенные папки - закоментить эту строку и открыть сроки 7 и с 11 по 24
 		if (diren->d_type == 8)
 		{
 			checkFileConsistsThreat(scanInfo, diren->d_name);
@@ -70,15 +71,6 @@ char *scaner(char *path)
 		pthread_mutex_destroy(&scanInfo.block);
 		return (strdup("Error2 searchingInCurrentDir getcwd / closedir\n"));
 	}
-	
-	// write(1, "====== Scan result ======\n\n", 26);
- 	// printf("Processed files: %d\n", scanInfo.countFiles);
- 	// printf("JS detects: %d\n", scanInfo.detect[JS_STR]);
- 	// printf("UNIX detects: %d\n", scanInfo.detect[UNIX_SRT]);
- 	// printf("macOS detects: %d\n", scanInfo.detect[MAC_STR]);
- 	// printf("Errors: %d\n", scanInfo.errors);
- 	// printf("=========================");
-
 	pthread_mutex_destroy(&scanInfo.block);
 	timeRes =  time(NULL) - timeStart;
 	char * result = makeScanReportLine(scanInfo, timeRes);

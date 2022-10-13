@@ -70,7 +70,9 @@ checkingData	*allocMemForChecking(int itIsJs, Info *scanInfo)
 (можно было сделать потоки на чтение каждого файла и проверять содержимое циклом, 
 так как по заданию их всего 3.
 Но я подумала, что обычно критериев вредоносности больше, чем файлов в папке 
-заданной клиентом - поэтому потоки на каждый критерий)
+заданной клиентом - поэтому потоки на каждый критерий. Если бы пришлось увеличивать 
+количество "подозрительных" срок - их можно не вписывать через хэдер, а парсить сюда из файла.
+ Изменив при этом количесво скрок THREAT_COUNT в хэдер файле )
 */
 void	checkFileConsistsThreat(Info *scanInfo, char *filename)
 {
@@ -135,6 +137,7 @@ void	checkFileConsistsThreat(Info *scanInfo, char *filename)
 				pthread_join (checking->thread, NULL);
 				checking = checking->next;
 			}
+
 		}
 		while(firstChecking)
 		{
