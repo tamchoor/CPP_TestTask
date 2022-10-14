@@ -1,5 +1,5 @@
-#ifndef SCAN_H
-# define SCAN_H
+#ifndef SCAN_HPP
+# define SCAN_HPP
 
 # include <iostream>
 # include <ctime>
@@ -36,6 +36,8 @@ struct checkingData
 	pthread_t			thread;
 	struct checkingData	*next;
 };
+
+char *scaner(char *path);
 
 /*scan_check*/
 void	checkFileConsistsThreat(Info *scanInfo, char *filename);

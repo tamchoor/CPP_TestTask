@@ -3,8 +3,7 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <libc.h>
-
-char *scaner(char *path);
+#include "Scanner.hpp"
 
 struct Client
 {
@@ -18,6 +17,7 @@ int main()
 	int			listener;
 	struct		sockaddr_in addr;
 	Client		client;
+	Scanner		scanner;
 
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if (listener < 0)
@@ -47,10 +47,9 @@ int main()
 	if (client.bytes_read > 0 && client.message[0] != '\0')
 	{
 		client.message[client.bytes_read] = '\0';
-		scanerRes = scaner(client.message);
+		scanerRes = scanner.startScanInDir(client.message);
 	}
 	send(client.sock, scanerRes, strlen(scanerRes), 0);
-	free(scanerRes);
 	close(client.sock);
 	return 0;
 }
